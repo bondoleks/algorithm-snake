@@ -52,6 +52,18 @@ public class Board extends AbstractBoard<Elements> {
             return result.get(0);
         }
     }
+    public List<Point> getHead2() {
+        List<Point> result = get(
+                Elements.HEAD_UP,
+                Elements.HEAD_DOWN,
+                Elements.HEAD_LEFT,
+                Elements.HEAD_RIGHT);
+        if (result.isEmpty()) {
+            return null;
+        } else {
+            return result;
+        }
+    }
 
     public List<Point> getBarriers() {
         List<Point> result = getSnake();
@@ -76,7 +88,7 @@ public class Board extends AbstractBoard<Elements> {
                 Elements.TAIL_LEFT_UP,
                 Elements.TAIL_RIGHT_DOWN,
                 Elements.TAIL_RIGHT_UP);
-        result.add(0, head);
+//        result.add(0, head);
         return result;
     }
 
