@@ -52,6 +52,22 @@ public class SolverTest {
                 "☼    ☺☼" +
                 "☼☼☼☼☼☼☼", Direction.UP);
 
+        asertAI("☼☼☼☼☼☼☼" +
+                "☼     ☼" +
+                "☼  ╔ ► ☼" +
+                "☼  ╙  ☼" +
+                "☼ ☻   ☼" +
+                "☼    ☺☼" +
+                "☼☼☼☼☼☼☼", Direction.RIGHT);
+
+        asertAI("☼☼☼☼☼☼☼" +
+                      "☼    ▲☼" +
+                      "☼ ☺╓ ╝☼" +
+                      "☼     ☼" +
+                      "☼ ☻   ☼" +
+                      "☼     ☼" +
+                      "☼☼☼☼☼☼☼", Direction.UP);
+
     }
 
     private void asertAI(String board, Direction expected) {
