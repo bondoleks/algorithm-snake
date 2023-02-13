@@ -3,6 +3,7 @@ package com.codenjoy.dojo.snake.client;
 import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.Direction;
+import com.codenjoy.dojo.services.RandomDice;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,7 +20,7 @@ public class SolverTest {
     @Before
     public void setup() {
         dice = mock(Dice.class);
-        ai = new YourSolver();
+        ai = new YourSolver(new RandomDice());
     }
 
     private Board board(String board) {
