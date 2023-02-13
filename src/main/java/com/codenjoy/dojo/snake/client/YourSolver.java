@@ -4,175 +4,168 @@ import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.client.WebSocketRunner;
 import com.codenjoy.dojo.services.*;
 import com.codenjoy.dojo.snake.model.Elements;
+import com.codenjoy.dojo.snake.trace.BoardLee;
+import com.codenjoy.dojo.snake.trace.PointLee;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * User: name
  */
 public class YourSolver implements Solver<Board> {
 
-    private Direction doSolve(Board board) {
-//        System.out.println(board.toString());
-        if (!board.isGameOver()) {
-            Point apple = board.getApples().get(0);
-            Point head = board.getHead();
-            List<Point> snake = board.getSnake();
-            Point stone = board.getStones().get(0);
-            List<Point> walls = board.getWalls();
-            Elements at = board.getAt(apple);
+    private Point convert1(PointLee p) {
+        return new PointImpl(p.x(), p.y());
+    }
 
-            List<Point> head2 = board.getHead2();
-            List<Point> barriers = board.getBarriers();
+    private PointLee convert2(Point p) {
+        return new PointLee(p.getX(), p.getY());
+    }
 
+    private Dice dice;
+    private Board board;
 
-            if (apple.getX() < head.getX()) {
-                head.setX(head.getX() - 1);
-                if (!barriers.contains(head)) return Direction.LEFT;
-                head.setX(head.getX() + 1);
-                head.setY(head.getY() - 1);
-                if (!barriers.contains(head)) return Direction.DOWN;
-                head.setX(head.getX() + 1);
-                head.setY(head.getY() + 1);
-                if (!barriers.contains(head)) return Direction.RIGHT;
-                head.setX(head.getX() - 1);
-                head.setY(head.getY() + 1);
-                if (!barriers.contains(head)) return Direction.UP;
-            }
-            if (apple.getY() > head.getY()) {
-                head.setY(head.getY() + 1);
-                if (!barriers.contains(head)) return Direction.UP;
-                head.setX(head.getX() - 1);
-                head.setY(head.getY() - 1);
-                if (!barriers.contains(head)) return Direction.LEFT;
-                head.setX(head.getX() + 1);
-                head.setY(head.getY() - 1);
-                if (!barriers.contains(head)) return Direction.DOWN;
-                head.setX(head.getX() + 1);
-                head.setY(head.getY() + 1);
-                if (!barriers.contains(head)) return Direction.RIGHT;
-            }
-            if (apple.getX() > head.getX()) {
-                head.setX(head.getX() + 1);
-                if (!barriers.contains(head)) return Direction.RIGHT;
-                head.setX(head.getX() - 1);
-                head.setY(head.getY() + 1);
-                if (!barriers.contains(head)) return Direction.UP;
-                head.setX(head.getX() - 1);
-                head.setY(head.getY() - 1);
-                if (!barriers.contains(head)) return Direction.LEFT;
-                head.setX(head.getX() + 1);
-                head.setY(head.getY() - 1);
-                if (!barriers.contains(head)) return Direction.DOWN;
-            }
-            if (apple.getY() < head.getY()) {
-                head.setY(head.getY() - 1);
-                if (!barriers.contains(head)) return Direction.DOWN;
-                head.setX(head.getX() + 1);
-                head.setY(head.getY() + 1);
-                if (!barriers.contains(head)) return Direction.RIGHT;
-                head.setX(head.getX() - 1);
-                head.setY(head.getY() + 1);
-                if (!barriers.contains(head)) return Direction.UP;
-                head.setX(head.getX() - 1);
-                head.setY(head.getY() - 1);
-                if (!barriers.contains(head)) return Direction.LEFT;
-            }
-        }
+    public YourSolver(Dice dice) {
+        this.dice = dice;
+    }
 
-        return Direction.random();
+    public int invertVervical(int val, int dimY) {
+        return dimY - val - 1;
     }
 
     @Override
     public String get(Board board) {
-        return doSolve(board).toString();
+        this.board = board;
+        if (board.isGameOver()) return "";
+        char[][] field = board.getField();
+        int sizeX = field.length;
+        int sizeY = field[0].length;
+        BoardLee boardLee = new BoardLee(sizeX, sizeY);
+
+        Point me = board.getHead();
+        List<Point> snake = board.getSnake();
+        Point appleOrStone;
+
+        if (snake.size() > 37) {
+            appleOrStone = board.getStones().get(0);
+            List<Point> barriersWithoutStone = board.getBarriersWithoutStones();
+            barriersWithoutStone.forEach(p -> boardLee.setObstacle(p.getX(), invertVervical(p.getY(), sizeY)));
+        } else if(snake.size() > 25){
+            appleOrStone = board.getApples().get(0);
+            List<Point> barriersWithoutStone = board.getBarriersWithoutStones();
+            barriersWithoutStone.forEach(p -> boardLee.setObstacle(p.getX(), invertVervical(p.getY(), sizeY)));
+        } else {
+            appleOrStone = board.getApples().get(0);
+            List<Point> barriers = board.getBarriers();
+            barriers.forEach(p -> boardLee.setObstacle(p.getX(), invertVervical(p.getY(), sizeY)));
+        }
+
+        PointLee src = new PointLee(me.getX(), invertVervical(me.getY(), sizeY));
+        PointLee dstApple = new PointLee(appleOrStone.getX(), invertVervical(appleOrStone.getY(), sizeY));
+
+        Optional<List<PointLee>> solution = boardLee.trace(src, dstApple);
+
+        if (solution.isPresent()) {
+            List<PointLee> path = solution.get();
+            PointLee p = path.stream().skip(1).findFirst().get();
+            int to_x = p.x();
+            int to_y = invertVervical(p.y(), sizeY);
+            if (to_x < me.getX()) return Direction.LEFT.toString();
+            if (to_y > me.getY()) return Direction.UP.toString();
+            if (to_x > me.getX()) return Direction.RIGHT.toString();
+            if (to_y < me.getY()) return Direction.DOWN.toString();
+
+        }else {
+
+        }
+        return Direction.ACT.toString();
     }
 
     public static void main(String[] args) {
         WebSocketRunner.runClient(
                 "http://206.81.21.158/codenjoy-contest/board/player/f6xu37pvn4jmb45uys6p?code=3261882916347567004",
-                new YourSolver(),
+                new YourSolver(new RandomDice()),
                 new Board());
     }
 
-    public Direction testMoving(Point head, List<Point> barriers, Board board){
-        Point left = head;
-        left.setX(left.getX() - 1);
-
-        Point right = head;
-        right.setX(right.getX() + 1);
-
-        Point up = head;
-        up.setY(up.getY() - 1);
-
-        Point down = head;
-        down.setY(down.getY() + 1);
-
-        for(Point x : barriers){
-            if (x.equals(left))return Direction.UP;
-            if (x.equals(right))return Direction.UP;
-            if (x.equals(up))return Direction.LEFT;
-            if (x.equals(down))return Direction.LEFT;
-
-        }
-        System.out.println("false");
-        Direction direction = doSolve((Board) board);
-        return direction;
-    }
-
-//    public Direction test(List<Point> snake) {
-//        for (Point x : snake) {
-//            if (x.equals(Direction.LEFT) && x.equals(Direction.UP) && x.equals(Direction.RIGHT)) return Direction.DOWN;
-//            if (x.equals(Direction.LEFT) && x.equals(Direction.DOWN) && x.equals(Direction.RIGHT)) return Direction.UP;
-//            if (x.equals(Direction.LEFT) && x.equals(Direction.DOWN) && x.equals(Direction.UP)) return Direction.RIGHT;
-//            if (x.equals(Direction.UP) && x.equals(Direction.DOWN) && x.equals(Direction.RIGHT)) return Direction.LEFT;
+    //    private Direction doSolve(Board board) {
+////        System.out.println(board.toString());
+//        if (!board.isGameOver()) {
+//            Point apple = board.getApples().get(0);
+//            Point head = board.getHead();
+//            List<Point> snake = board.getSnake();
+//            Point stone = board.getStones().get(0);
+////            List<Point> walls = board.getWalls();
+////            Elements at = board.getAt(apple);
+////
+////            List<Point> head2 = board.getHead2();
+//            List<Point> barriers = board.getBarriers();
+//            List<Point> barriersWithoutStones = board.getBarriersWithoutStones();
+//
+//            if (snake.size() > 35) {
+//                return moves(stone, head, barriersWithoutStones);
+//            }
+//            return moves(apple, head, barriers);
 //        }
 //        return Direction.random();
 //    }
-//
-//    public boolean testLeft(List<Point> snake) {
-//        for (Point x : snake) {
-//            if (x.equals(Direction.getValues().get(0))) {
-//                System.out.println("false");
-//                return false;
-//            }
-//        }
-//        System.out.println("true");
-//        return true;
-//    }
-//
-//    public boolean testRight(List<Point> snake) {
-//        for (Point x : snake) {
-//            if (x.equals(Direction.getValues().get(1))) {
-//                System.out.println("false");
-//                return false;
-//            }
-//        }
-//        System.out.println("true");
-//        return true;
-//    }
-//
-//    public boolean testUP(List<Point> snake) {
-//        for (Point x : snake) {
-//            //
-//            if (x.equals(Direction.getValues().get(2))) {
-//                System.out.println("false");
-//                return false;
-//            }
-//        }
-//        System.out.println("true");
-//        return true;
-//    }
-//
-//    public boolean testDown(List<Point> snake) {
-//        for (Point x : snake) {
-//            if (x.equals(Direction.getValues().get(3))) {
-//                System.out.println("false");
-//                return false;
-//            }
-//        }
-//        System.out.println("true");
-//        return true;
-//    }
 
+//    public Direction moves(Point apple, Point head, List<Point> barriers) {
+//        if (apple.getX() < head.getX()) {
+//            head.setX(head.getX() - 1);
+//            if (!barriers.contains(head)) return Direction.LEFT;
+//            head.setX(head.getX() + 1);
+//            head.setY(head.getY() - 1);
+//            if (!barriers.contains(head)) return Direction.DOWN;
+//            head.setX(head.getX() + 1);
+//            head.setY(head.getY() + 1);
+//            if (!barriers.contains(head)) return Direction.RIGHT;
+//            head.setX(head.getX() - 1);
+//            head.setY(head.getY() + 1);
+//            if (!barriers.contains(head)) return Direction.UP;
+//        }
+//        if (apple.getY() > head.getY()) {
+//            head.setY(head.getY() + 1);
+//            if (!barriers.contains(head)) return Direction.UP;
+//            head.setX(head.getX() - 1);
+//            head.setY(head.getY() - 1);
+//            if (!barriers.contains(head)) return Direction.LEFT;
+//            head.setX(head.getX() + 1);
+//            head.setY(head.getY() - 1);
+//            if (!barriers.contains(head)) return Direction.DOWN;
+//            head.setX(head.getX() + 1);
+//            head.setY(head.getY() + 1);
+//            if (!barriers.contains(head)) return Direction.RIGHT;
+//        }
+//        if (apple.getX() > head.getX()) {
+//            head.setX(head.getX() + 1);
+//            if (!barriers.contains(head)) return Direction.RIGHT;
+//            head.setX(head.getX() - 1);
+//            head.setY(head.getY() + 1);
+//            if (!barriers.contains(head)) return Direction.UP;
+//            head.setX(head.getX() - 1);
+//            head.setY(head.getY() - 1);
+//            if (!barriers.contains(head)) return Direction.LEFT;
+//            head.setX(head.getX() + 1);
+//            head.setY(head.getY() - 1);
+//            if (!barriers.contains(head)) return Direction.DOWN;
+//        }
+//        if (apple.getY() < head.getY()) {
+//            head.setY(head.getY() - 1);
+//            if (!barriers.contains(head)) return Direction.DOWN;
+//            head.setX(head.getX() + 1);
+//            head.setY(head.getY() + 1);
+//            if (!barriers.contains(head)) return Direction.RIGHT;
+//            head.setX(head.getX() - 1);
+//            head.setY(head.getY() + 1);
+//            if (!barriers.contains(head)) return Direction.UP;
+//            head.setX(head.getX() - 1);
+//            head.setY(head.getY() - 1);
+//            if (!barriers.contains(head)) return Direction.LEFT;
+//        }
+//
+//        return Direction.random();
+//    }
 }
+
