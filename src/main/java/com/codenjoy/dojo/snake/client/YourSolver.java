@@ -11,17 +11,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * User: name
+ * User: Oleksandr Bondarchuk
  */
 public class YourSolver implements Solver<Board> {
-
-    private Point convert1(PointLee p) {
-        return new PointImpl(p.x(), p.y());
-    }
-
-    private PointLee convert2(Point p) {
-        return new PointLee(p.getX(), p.getY());
-    }
 
     private Dice dice;
     private Board board;
@@ -37,21 +29,23 @@ public class YourSolver implements Solver<Board> {
     @Override
     public String get(Board board) {
         this.board = board;
+
         if (board.isGameOver()) return "";
+
         char[][] field = board.getField();
         int sizeX = field.length;
         int sizeY = field[0].length;
         BoardLee boardLee = new BoardLee(sizeX, sizeY);
-
-        Point me = board.getHead();
+        Point head = board.getHead();
         List<Point> snake = board.getSnake();
+        List<Point> barriersAfterNoMoves = board.getBarriersWithoutStones();
         Point appleOrStone;
 
-        if (snake.size() > 37) {
+        if (snake.size() > 50) {
             appleOrStone = board.getStones().get(0);
             List<Point> barriersWithoutStone = board.getBarriersWithoutStones();
             barriersWithoutStone.forEach(p -> boardLee.setObstacle(p.getX(), invertVervical(p.getY(), sizeY)));
-        } else if(snake.size() > 25){
+        } else if(snake.size() > 30){
             appleOrStone = board.getApples().get(0);
             List<Point> barriersWithoutStone = board.getBarriersWithoutStones();
             barriersWithoutStone.forEach(p -> boardLee.setObstacle(p.getX(), invertVervical(p.getY(), sizeY)));
@@ -61,9 +55,8 @@ public class YourSolver implements Solver<Board> {
             barriers.forEach(p -> boardLee.setObstacle(p.getX(), invertVervical(p.getY(), sizeY)));
         }
 
-        PointLee src = new PointLee(me.getX(), invertVervical(me.getY(), sizeY));
+        PointLee src = new PointLee(head.getX(), invertVervical(head.getY(), sizeY));
         PointLee dstApple = new PointLee(appleOrStone.getX(), invertVervical(appleOrStone.getY(), sizeY));
-
         Optional<List<PointLee>> solution = boardLee.trace(src, dstApple);
 
         if (solution.isPresent()) {
@@ -71,15 +64,25 @@ public class YourSolver implements Solver<Board> {
             PointLee p = path.stream().skip(1).findFirst().get();
             int to_x = p.x();
             int to_y = invertVervical(p.y(), sizeY);
-            if (to_x < me.getX()) return Direction.LEFT.toString();
-            if (to_y > me.getY()) return Direction.UP.toString();
-            if (to_x > me.getX()) return Direction.RIGHT.toString();
-            if (to_y < me.getY()) return Direction.DOWN.toString();
+            if (to_x < head.getX()) return Direction.LEFT.toString();
+            if (to_y > head.getY()) return Direction.UP.toString();
+            if (to_x > head.getX()) return Direction.RIGHT.toString();
+            if (to_y < head.getY()) return Direction.DOWN.toString();
 
-        }else {
-
+        } else {
+            head.setX(head.getX() - 1);
+            if (!barriersAfterNoMoves.contains(head)) return Direction.LEFT.toString();
+            head.setX(head.getX() + 1);
+            head.setY(head.getY() - 1);
+            if (!barriersAfterNoMoves.contains(head)) return Direction.DOWN.toString();
+            head.setX(head.getX() + 1);
+            head.setY(head.getY() + 1);
+            if (!barriersAfterNoMoves.contains(head)) return Direction.RIGHT.toString();
+            head.setX(head.getX() - 1);
+            head.setY(head.getY() + 1);
+            if (!barriersAfterNoMoves.contains(head)) return Direction.UP.toString();
         }
-        return Direction.ACT.toString();
+        return Direction.ACT().toString();
     }
 
     public static void main(String[] args) {

@@ -120,7 +120,7 @@ public class BoardLee {
             ArrayList<PointLee> path = new ArrayList<>();
             path.add(finish);
             PointLee curr_p = finish;
-            while (counter[0]>0) {
+            while (counter[0] > 0) {
                 counter[0]--;
                 PointLee prev_p = neighborByValue(curr_p, counter[0]);
                 path.add(prev_p);
@@ -130,36 +130,6 @@ public class BoardLee {
             return Optional.of(path);
         } else {
             return Optional.empty();
-        }
-    }
-
-    public static void main(String[] args) {
-        BoardLee b = new BoardLee(15, 10);
-        PointLee p1 = new PointLee(0, 0);
-        PointLee p2 = new PointLee(14, 9);
-        b.setObstacle(new PointLee(5,0));
-        b.setObstacle(new PointLee(5,1));
-        b.setObstacle(new PointLee(5,2));
-        b.setObstacle(new PointLee(5,3));
-        b.setObstacle(new PointLee(5,4));
-        b.setObstacle(new PointLee(5,5));
-        b.setObstacle(new PointLee(5,6));
-
-        b.setObstacle(new PointLee(10,4));
-        b.setObstacle(new PointLee(10,5));
-        b.setObstacle(new PointLee(10,6));
-        b.setObstacle(new PointLee(10,7));
-        b.setObstacle(new PointLee(10,8));
-        b.setObstacle(new PointLee(10,9));
-        b.printMe();
-        Optional<List<PointLee>> result = b.trace(p1, p2);
-        if (result.isPresent()) {
-            System.out.println("Path has been found");
-            List<PointLee> path = result.get();
-            path.forEach(System.out::println);
-            b.printMe(true, path);
-        } else {
-            System.out.println("Trace can't be found");
         }
     }
 
