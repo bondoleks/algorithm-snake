@@ -46,12 +46,4 @@ public class PointLee {
         return String.format("[x:%2d, y:%2d]", x, y);
     }
 
-    public static void main(String[] args) {
-        PointLee p = new PointLee(3, 5);
-        PointLee p2 = new PointLee(3, 5);
-        System.out.println(p);
-        System.out.println(p.equals(p2));
-        PointLee p3 = p.move(new PointLee(1, 1));
-        System.out.println(p3);
-    }
 }
