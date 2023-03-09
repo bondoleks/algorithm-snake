@@ -1,4 +1,4 @@
-# **Sake Super AI (Algorithm)**
+# **Snake Super AI (Algorithm)**
 
 ## Project-game "Snake" with artificial intelligence.
 
