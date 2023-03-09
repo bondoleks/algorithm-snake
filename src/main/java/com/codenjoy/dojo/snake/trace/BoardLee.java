@@ -109,7 +109,6 @@ public class BoardLee {
             if (next.contains(finish)) {
                 found = true;
             }
-//            printMe();
             curr.clear();
             curr.addAll(next);
             next.clear();
@@ -132,5 +131,4 @@ public class BoardLee {
             return Optional.empty();
         }
     }
-
 }

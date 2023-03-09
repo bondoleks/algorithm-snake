@@ -82,7 +82,6 @@ public class Board extends AbstractBoard<Elements> {
                 Elements.TAIL_LEFT_UP,
                 Elements.TAIL_RIGHT_DOWN,
                 Elements.TAIL_RIGHT_UP);
-//        result.add(0, head);
         return result;
     }
 
